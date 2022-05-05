@@ -1,49 +1,134 @@
 package com.cm6121.countWord.app.utilityFile;
 
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvException;
-
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class FileReader {
-    /**
-     * Method that will return a List of Array of String that will contains the CSV content.
-     * The method skip the first line of the CSV
-     * You can implement another method, or use this one to read a CSV. This method is using OpenCSV
-     * @param file, the CSV file
-     * @return a List of String array
-     */
-    public List<String[]> readCSVMethod1 (File file) {
-        List<String[]> strings = new ArrayList<>();
-        try {
-            CSVReader reader = new CSVReader(
-                    new InputStreamReader(new FileInputStream(file), "UTF-8"));
-            {
-                reader.skip(1);
-                strings = reader.readAll();
+    private Document document = null;
+
+    public Document readFile (File file) throws IOException {
+        String[] values;
+        String line;
+
+        BufferedReader br = new BufferedReader(new java.io.FileReader(file.getPath()));
+        int counter = 0;
+
+        while ((line = br.readLine()) != null) {
+            if (counter == 0) {
+                counter++;
+                continue;
             }
-            System.out.println(strings);
-        } catch (IOException | CsvException e) {
-            System.out.println(e.getStackTrace());
+            values = line.split(",");
+
+            document = new Document();
+            document.setTitle(values[0]);
+            document.setText(line.substring(line.indexOf(','), line.lastIndexOf(',') + 1));
+            document.setDateOfCreation(line.substring(line.lastIndexOf(',') + 1).trim());
         }
-        return strings;
+        return document;
     }
 
-    /**
-     * This method is used in several tests to return a list of files that is contained in a folder
-     * This method should not be changed.
-     * @param folder String that represent the path of the folder that we want the list of files
-     * @return a array of files
-     */
-    public static File[] getResourceFolderFiles (String folder) {
-        return new File(folder).listFiles();
+    public static void readMappedFiles(String path) throws IOException {
+        File CSVFile = new File(String.valueOf(path));
+        if (CSVFile.isFile()){
+            BufferedReader CSVReader = new BufferedReader(new java.io.FileReader(path));
+            String line;
+
+            String specificFile = CSVFile.getAbsolutePath().substring(CSVFile.getAbsolutePath().lastIndexOf("\\") + 1);
+            if (specificFile.equals("CSVAllDocuments_allWords.csv")) {
+                System.out.println("Here are the number of words in the file: " + specificFile);
+                int numberOfLines = 0;
+                int counter = 0;
+                while (numberOfLines < 21 && (line = CSVReader.readLine()) != null){
+                    if (counter == 0){
+                        counter ++;
+                        continue;
+                    }
+                    String[] information = line.split(",");
+                    System.out.println("Word: " + information[0] + ", occurrences: " + information[1]);
+
+                    numberOfLines++;
+                }
+            } else {
+                System.out.println("Here are the number of words in the file: " + specificFile);
+                int counter = 0;
+                while ((line = CSVReader.readLine()) != null){
+                    if (counter == 0){
+                        counter++;
+                        continue;
+                    }
+                    String[] information = line.split(",");
+                    System.out.println("Word: " + information[0] + ", occurrences: " + information[1]);
+                }
+                CSVReader.close();
+            }
+        }
     }
 
+    public static void wordSearch(String path, String word, File file) throws IOException {
+        File CSVFile = new File(String.valueOf(path));
 
+        if(CSVFile.isFile()) {
+            BufferedReader CSVReader = new BufferedReader(new java.io.FileReader(path));
+            String line;
+            int contains = 0;
+            int linesInFile = 0;
+            while ((line = CSVReader.readLine()) != null){
+                linesInFile ++;
+                String[] information = line.split(",");
+                String column1 = information[0];
+                String column2 = information[1];
+                if (column1.equals(word)) {
+                    System.out.println("The word: '" + word + "' appears: " + column2 + " times in the file: " + file.getName());
+                } else {
+                    contains ++;
+                }
+            }
 
+            if (contains == linesInFile){
+                System.out.println("Unfortunately, the word '" + word + "' Does not appear in the file: " + file.getName());
+            }
+        }
+    }
+
+    public HashMap<String, Integer> readAllWords(String wordsInFile) {
+        HashMap<String, Integer> numberWords = new HashMap<>();
+        wordsInFile = wordsInFile.replaceAll("’s", "");
+        wordsInFile = wordsInFile.replaceAll("—", " ");
+        String[] words = wordsInFile.split("\\s+");
+
+        for (int i = 0; i < words.length; i++){
+
+            words[i] = words[i].replaceAll("[^\\w]", "");
+
+            words[i] = words[i].toLowerCase();
+
+            if (numberWords.containsKey(words[i]) && words[i].length() > 1){
+                int count = numberWords.get(words[i]) + 1;
+                numberWords.put(words[i], count);
+            } else if (words[i].length() > 1){
+                numberWords.put(words[i], 1);
+            }
+        }
+        return numberWords;
+    }
+
+    static HashMap<String, Integer> completeMap = new HashMap<>();
+    public static HashMap<String, Integer> completeMap(HashMap<String, Integer> map) {
+        map.forEach((k, v) -> completeMap.merge(k, v, (v1, v2) -> v1 + v2));
+
+        LinkedHashMap<String, Integer> reverseCompleteMap = (LinkedHashMap<String, Integer>) SortMap.sortMap(completeMap, "DSC");
+
+        String filePath = WriterCSV.createDirectory();
+
+        Path path = Paths.get((filePath + "\\" + "CSVAllDocuments" + "_allWords.csv"));
+        File file = new File(path.toString());
+        WriterCSV.writeToFile(reverseCompleteMap, file);
+        return reverseCompleteMap;
+    }
 }
