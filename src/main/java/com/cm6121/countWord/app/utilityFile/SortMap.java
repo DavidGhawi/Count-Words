@@ -11,9 +11,10 @@ import static com.cm6121.countWord.app.utilityFile.FileReader.completeMap;
 public class SortMap {
     public static Map<String, Integer> sortMap(HashMap<String, Integer> unsortedMap, String order) {
         if (order.equals("ASC")) {
-            Map<String, Integer> sortedMap = unsortedMap.entrySet().stream()
-                    .sorted(Comparator.comparingInt(e -> e.getValue()))
-                    .collect(Collectors.toMap(
+            Map<String, Integer> sortedMap = unsortedMap.entrySet()
+                    .stream().sorted(Comparator.comparingInt(e -> e.getValue()))
+                    .collect(Collectors
+                            .toMap(
                             Map.Entry::getKey,
                             Map.Entry::getValue,
                             (a, b) -> {
