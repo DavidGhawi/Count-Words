@@ -33,6 +33,28 @@ public class FileReader {
         return document;
     }
 
+    public HashMap<String, Integer> readAllWords(String wordsInFile) {
+        HashMap<String, Integer> numberWords = new HashMap<>();
+        wordsInFile = wordsInFile.replaceAll("’s", "");
+        wordsInFile = wordsInFile.replaceAll("—", " ");
+        String[] words = wordsInFile.split("\\s+");
+
+        for (int i = 0; i < words.length; i++){
+
+            words[i] = words[i].replaceAll("[^\\w]", "");
+
+            words[i] = words[i].toLowerCase();
+
+            if (numberWords.containsKey(words[i]) && words[i].length() > 1){
+                int count = numberWords.get(words[i]) + 1;
+                numberWords.put(words[i], count);
+            } else if (words[i].length() > 1){
+                numberWords.put(words[i], 1);
+            }
+        }
+        return numberWords;
+    }
+
     public static void readMappedFiles(String path) throws IOException {
         File CSVFile = new File(String.valueOf(path));
         if (CSVFile.isFile()){
@@ -94,28 +116,6 @@ public class FileReader {
                 System.out.println("Unfortunately, the word '" + word + "' Does not appear in the file: " + file.getName());
             }
         }
-    }
-
-    public HashMap<String, Integer> readAllWords(String wordsInFile) {
-        HashMap<String, Integer> numberWords = new HashMap<>();
-        wordsInFile = wordsInFile.replaceAll("’s", "");
-        wordsInFile = wordsInFile.replaceAll("—", " ");
-        String[] words = wordsInFile.split("\\s+");
-
-        for (int i = 0; i < words.length; i++){
-
-            words[i] = words[i].replaceAll("[^\\w]", "");
-
-            words[i] = words[i].toLowerCase();
-
-            if (numberWords.containsKey(words[i]) && words[i].length() > 1){
-                int count = numberWords.get(words[i]) + 1;
-                numberWords.put(words[i], count);
-            } else if (words[i].length() > 1){
-                numberWords.put(words[i], 1);
-            }
-        }
-        return numberWords;
     }
 
     static HashMap<String, Integer> completeMap = new HashMap<>();
