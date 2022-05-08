@@ -1,0 +1,1 @@
+To run the program please change the folder path on (line 26 in the Application.java) class. Once the folder path has been changed the program can run using .\gradlew run for running the application, and .\gradlew test to run all the tests.
